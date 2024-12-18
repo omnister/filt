@@ -1,0 +1,12 @@
+(
+    echo 1>&2
+    for i in 1 2 3 4 5 6 7 8 9 
+    do
+	echo "brf -tinvcheb -b.05 -c.$i -n7 -x" 1>&2
+	echo "yset 1e-5 1"
+	brf -tinvcheb -b.05 -c.$i -n7 -x
+    done
+    echo 1>&2
+    echo "title Bandpass Inverse Chebyshev transfer function"
+    echo "title 7th order, center frequency from .1 to .9, BW=.05"
+) | ap  

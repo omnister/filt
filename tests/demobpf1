@@ -1,0 +1,11 @@
+(
+    echo xset .45 .55
+    echo "title Comparison of Butterworth and Chebyshev BP filters"
+    echo 1>&2
+    echo "bpf -b.05 -c.5 -n5 -t butterworth -x" 1>&2
+    echo "bpf -b.05 -c.5 -n5 -t chebyshev -x" 1>&2
+    echo 1>&2
+    bpf -b.05 -c.5 -n5 -t butterworth -x
+    bpf -b.05 -c.5 -n5 -t chebyshev -x
+    echo "title 5th order, center frequency =.5,  BW=.05, Ripple = 3dB"
+) | ap

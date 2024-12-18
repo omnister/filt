@@ -1,0 +1,31 @@
+#!/bin/ksh
+
+DATAFILE=data.$$
+TEMPFILE=temp.$$
+
+nawk 'BEGIN {
+    for(i=1;i<300;i++) {
+	if(i<160 && i>140)
+	    print i,1;
+	else 
+	    print i,0
+    }
+}' > $DATAFILE
+
+(
+    echo "title 8th order zero-phase butterworth impulse response"
+    echo "title made by running data both fwd and backwards through filter"
+    echo "yscale 1 response"
+    echo "xscale 1 time [sample number]"
+    echo "yset -.2 1.2"
+    cat $DATAFILE
+    echo 1>&2
+    echo "revfile $DATAFILE | lpf -n8 -b.05 > $TEMPFILE" 1>&2
+    echo "revfile $TEMPFILE | lpf -n8 -b.05" 1>&2
+    echo 1>&2
+    revfile $DATAFILE | lpf -n8 -b.05 > $TEMPFILE
+    revfile $TEMPFILE | lpf -n8 -b.05
+) | ap
+
+/bin/rm $DATAFILE 
+/bin/rm $TEMPFILE 

@@ -1,0 +1,30 @@
+#!/bin/ksh
+
+DATAFILE=data.$$
+
+nawk 'BEGIN {
+    for(i=1;i<300;i++) {
+	if(i<30 && i>20)
+	    print i,1;
+	else 
+	    print i,0
+    }
+}' > $DATAFILE
+
+(
+    echo "title butterworth impulse response plotted for"
+    echo "title 1st through 8th order filters"
+    echo "yscale 1 response"
+    echo "xscale 1 time [sample number]"
+    echo "yset -.2 1.2"
+    cat $DATAFILE
+    echo 1>&2
+    for i in  1 2 3 4 5 6 7 8
+    do
+	echo "cat $DATAFILE | lpf -n$i -b.05" 1>&2
+	cat $DATAFILE | lpf -n$i -b.05 
+    done
+    echo 1>&2
+) | ap
+
+/bin/rm $DATAFILE 

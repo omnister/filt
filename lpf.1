@@ -1,0 +1,289 @@
+.TH lpf l
+.ad b
+.SH NAME
+lpf, hpf, bpf, brf \- filter a stream of input data in the time domain
+.SH SYNOPSIS
+.B lpf
+[
+.B -dLqxX?
+]
+[
+.B -f
+.I filename
+]
+[
+.B -t
+.I filter_type
+]
+[
+.B -n
+.I filter_order
+]
+[
+.B -c
+.I center_frequency
+]
+[
+.B -b
+.I filter_bandwidth
+]
+[
+.B -r
+.I ripple_tolerance
+]
+[
+.B -s
+.I shape_factor
+]
+[
+.B -F
+.I fnorm_char
+]
+[
+.B -i
+.I dc_value
+]
+[
+.B -I
+.I nsamples
+]
+[
+.B -S
+.I nsamples
+]
+
+.SH DESCRIPTION
+All of the 
+.I Filter
+suite of programs read "time,value" pairs from standard input and write
+a filtered set of values to standard output. 
+.I lpf
+is a lowpass filter,
+.I hpf
+is a highpass filter,
+.I bpf
+is a bandpass filter, and
+.I brf
+is a bandreject filter.
+All of the programs assume that the input
+data is evenly spaced in time. In fact, the "time" value is ignored
+and merely passed unchanged to the output.  The output format is ASCII
+"time,value" pairs, with one pair per line, and is suitable for input to
+.I autoplot.
+Lines which do not begin with a numeric value are passed directly to the
+output, so that formatting commands can be included in the data.
+The following options are recognized:
+.TP
+.B -t \fI filter_type
+\fI Filter_type\fR can be either "butterworth", "maxflat",
+"chebyshev", "modcheb", "invcheb", or "bessel".  Default is "butterworth".
+The Butterworth approximation is a special case of the maximally-flat
+approximation with its loss at the edge of the passband set to 3 dB.
+The modified Chebyshev approximation applies to even-order filters only,
+shifting their lowest reflection zeros (in the LP case) to zero.  Hence,
+even-order modified Chebyshev filters have unity gain at dc.  Inverse
+Chebyshev filters have a maximally-flat passband and equiminima stopband
+with finite transmission zeros.  They have less total delay and delay
+distortion than a comparable Chebyshev filter.  They are also
+particularly useful in this program for bandreject filters.
+.TP
+.B -n \fI filter_order
+This gives the number of natural frequencies in the low-pass prototype.
+Bandpass and bandreject filters will actually use twice the specified 
+number of frequencies.  Default is 8th-order.
+.TP
+.B -c \fI center_frequency
+Specifies the the arithmetic center frequency of bandpass or bandreject
+filters relative to the Nyquist frequency (sampling_frequency / 2). 
+The parameter is ignored for lpf or hpf filters.  Default is 0.5.
+.TP
+.B -b \fI bandwidth
+Specifies the filter bandwidth in normalized frequency relative to Nyquist.
+For example, if the sampling rate is 1 kHz and the  desired low-pass cutoff
+frequency is 50 Hz, the bandwidth should be specified as "-b 0.1". 
+Default is 0.1.  Note: Bessel filters are not specified in terms of
+bandwidth, but in terms of gain and phase flatness for a given delay.
+The number of samples that a Bessel filter delays the data is equal to
+1/(PI*bandwidth), as specified on the command line.  Higher order Bessel
+filters do not increase the delay, they just produce a more linear delay
+characteristic out to higher frequencies.
+.TP
+.B -r \fI ripple_tolerance
+Specify the amount of passband ripple, in dB, for the Chebyshev approximation.
+Also specifies the loss at the edge of the passband for maximally-flat and
+inverse Chebyshev filters.  This parameter is ignored for Butterworth
+filters. Default is 3.0103 dB.
+.TP
+.B -s \fI shape_factor
+This parameter applies to inverse Chebyshev filters only, and specifies
+the ratio of the stopband edge frequency to the passband edge frequency
+(Fsb/Fpb) for lowpass filters.  It specifies Fpb/Fsb for highpass filters,
+delta_Fsb/delta_Fpb for bandpass filters, and delta_Fpb/delta_Fsb for
+bandreject filters.  Default \fI shape_factor\fR is 2.
+.TP
+.B -F \fI fnorm_char
+Select the frequency normalization factor.  This affects the interpretation
+of the
+.B -cbxXLP
+options.
+If \fI fnorm_char\fR is 'n' or 'N', then normalize by the
+Nyquist frequency (sampling_frequency / 2).
+If \fI fnorm_char\fR is 's' or 'S', normalize by the sampling frequency.
+Default is to normalize by the Nyquist frequency.
+.TP
+.B -i \fI dc_value
+Specify the filter's initial input value, i.e., the filter acts as if the
+filter input had been \fI dc_value\fR from t = (minus infinity) to t = 0.
+Of course, the default value is 0.
+.TP
+.B -x
+Causes the program to output the calculated frequency response in
+autoplot(1) format.  No filtering is done.  This option is helpful in
+choosing the filter parameters before actually doing the time domain
+filtering.
+.TP
+.B -X
+Like the
+.B -x
+option, with the filter's delay plotted as well.
+.TP
+.B -L
+Like the
+.B -X
+option, plotting the more traditional loss and delay curves.
+.TP
+.B -P
+A variant on the
+.B -L
+option, wherein only the passband is plotted.
+.TP
+.B -I \fI nsamples
+Outputs, in autoplot(1) format, \fI nsamples\fR of the time-domain
+impulse response of the filter.  This and the
+.B -S
+option are useful to observe the settling behavior of the filter and
+to make sure that the program has correctly constructed a \fI stable\fR
+filter :-).
+.TP
+.B -S \fI nsamples
+Outputs, in autoplot(1) format, \fI nsamples\fR of the time-domain
+step response of the filter.
+.TP
+.B -d
+Causes the program to dump the calculated z-domain biquad parameters to
+standard output.  These parameters can be used to duplicate the filter
+in hardware.  (Note, however, that this program's scaling, pairing, and
+ordering of pole-zero pairs is not optimized for fixed-point arithmetic.)
+They can also be saved and read back in with the 
+.B -f
+option.  No filtering is done when this option is specified.
+.TP
+.B -f \fI filename
+Causes the program to load the z-domain biquad parameters from 
+.I filename
+and to use the parameters for subsequent filtering.  This option allows
+parameters to be imported from other filter design programs.  Also,
+two or more dump files created with the
+.B -d
+option can be concatenated to form composite filters.  When using
+imported parameters, the
+.B -tncbrs
+options are all ignored.
+.TP
+.B -q
+do not pass the non-data lines to the output.
+.TP
+.B -?
+print out a quick summary of options and exit.
+.SH EXAMPLES
+If the sampling rate is 1 kHz and the desired 3 dB frequency is 50 Hz, a 
+20th-order Butterworth lowpass filter would be invoked as:
+.PP
+.DS
+    "lpf -b0.1 -n20 -tbutt < input_file > output_file"
+.DE
+.PP
+To see the frequency domain performance of this filter, use the
+.B -X 
+option:
+.PP
+.DS
+    "lpf -b0.1 -n20 -tbutt -X | autoplot"
+.DE
+.PP
+This example compares the magnitude response of an inverse Chebyshev
+filter to a commensurate plain Chebyshev filter:
+.PP
+.DS
+    "(echo xset 0.4 0.6; bpf -tcheb -x; bpf -tinvcheb -s2 -x) | autoplot"
+.DE
+.PP
+The phase distortion of the Bessel approximation (see BUGS) is
+revealed by this example:
+.PP
+.DS
+    "(lpf -tbess -b.1 -n10 -S100; lpf -tbess -b.01 -n10 -S100) | autoplot"
+.DE
+.PP
+Linear phase filtering can be done by running the data through the
+same filter in both forward and reverse time.  This can be done easily
+with the revfile(1) program that "cats" lines in reverse order:
+.PP
+.DS
+    "revfile datafile | lpf > temp"
+    "revfile temp | lpf > outputfile"
+.DE
+.PP
+Or try this, to verify the symmetry of the filter's impulse response:
+.PP
+.DS
+    nawk 'BEGIN { \(
+      for (i=199; i>=0; i--) \(
+        if (i == 100) print i, 1; else print i, 0 \(
+    }' | lpf | revfile | lpf | autoplot
+.DE
+.PP
+This combines forward/backward filtering with the
+.B -i
+option to obtain a symmetric step:
+.PP
+.DS
+  nawk 'BEGIN { \(
+    for (i=199; i>=0; i--) \(
+      if (i >= 100) print i, 1; else print i, 0 \(
+  }' | lpf -i1 | revfile | lpf | autoplot
+.DE
+.PP
+The
+.B -i
+option is illustrated in the following example, where the step response
+transient is suppressed by a priori knowledge of the initial condition:
+.PP
+.DS
+    "(lpf -S100; lpf -i1.0 -S100) | autoplot"
+.DE
+.PP
+An interesting DSP principle is demonstrated in this example:
+.PP
+.DS
+    "bpf -tinvcheb -n5 -b.1 -I80 | autoplot"
+.DE
+.PP
+A symmetric bandpass filter, centered on half the Nyquist frequency, has
+an impulse response where every other sample is zero.  This can be
+exploited to simplify its hardware implementation.
+.SH SEE ALSO
+autoplot(1)
+.SH AUTHOR
+Written by Rick Walker, HPL.
+.PP
+Modifications by Scott Willingham, HPL.
+.SH BUGS
+The Bessel filter option does not create a filter with linear phase!  This
+results from the bilinear transformation of the s-domain Bessel polynomial
+into the the z-domain.  The frequency mapping is inherently warped,
+distorting the phase and delay response.  Narrowband lowpass Bessel filters
+(i.e., with long delay) should be acceptable.  Highpass, bandpass, and
+bandreject transformations all destroy linear phase as well.  The program
+allows such filters to be specified, but issues a warning on stderr.
+

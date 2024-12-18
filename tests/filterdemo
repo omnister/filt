@@ -1,0 +1,19 @@
+touch logfile
+echo `whoami` `date` >> logfile
+PATH=$PATH:/usr/local/bin/dsp; export PATH
+
+echo "A few of these are filtering fairly large data"
+echo "files and may take several seconds to complete."
+echo
+for file in /usr/local/src/cmd/filter/tests/demo*
+do
+    $file
+    echo "type return for next demo: \c"
+    read foo
+done
+echo
+echo "this program is kept in /usr/local/bin/dsp"
+echo "you may want to add this directory to your PATH variable"
+echo
+echo "for more info type \"man lpf\""
+echo

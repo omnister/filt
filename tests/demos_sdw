@@ -1,0 +1,110 @@
+#!/bin/ksh
+# simple demo script for new filter.c features
+# sdw, 8/12/93
+
+function NEXT { echo; echo "type return for next demo: \c"; read foo; echo; echo; }
+
+echo The following demos are examples from the lpf man page.
+echo Please see lpf.man for more information.
+echo
+echo
+
+  echo A Chebyshev Loss plot:
+  echo "lpf -tcheb -n7 -b0.25 -r0.5 -L | ap"
+  lpf -tcheb -n7 -b0.25 -r0.5 -L | ap 
+
+NEXT
+
+  echo A Chebyshev Loss plot -- Passband only:
+  echo "lpf -tcheb -n7 -b0.25 -r0.5 -P | ap"
+  lpf -tcheb -n7 -b0.25 -r0.5 -P | ap 
+
+NEXT
+
+  echo A comparison of Chebyshev vs Inverse Chebyshev BPFs:
+  echo "(echo xset 0.4 0.6; bpf -tcheb -x; bpf -tinvcheb -s2 -x) | ap"
+  (echo xset 0.4 0.6; bpf -tcheb -x; bpf -tinvcheb -s2 -x) | ap
+
+NEXT
+
+  echo Bessel filter bug...
+  echo "(lpf -tbess -b.1 -n10 -S100; lpf -tbess -b.01 -n10 -S100) | ap"
+  (lpf -tbess -b.1 -n10 -S100; lpf -tbess -b.01 -n10 -S100) | ap
+
+NEXT
+
+  echo Symmetric impulse response via backward/forward filtering:
+  echo "nawk 'BEGIN {"
+  echo "  for (i=199; i>=0; i--)"
+  echo "    if (i == 100) print i, 1; else print i, 0"
+  echo "}' | lpf | revfile | lpf | ap"
+
+  nawk 'BEGIN {
+    for (i=199; i>=0; i--)
+      if (i == 100) print i, 1; else print i, 0
+  }' | lpf | revfile | lpf | ap 
+
+NEXT
+
+  echo Symmetric step response via backward/forward filtering:
+  echo NOTE: use of -i flag to set boundary condition.
+  echo "nawk 'BEGIN {"
+  echo "  for (i=199; i>=0; i--)"
+  echo "    if (i >= 100) print i, 1; else print i, 0"
+  echo "}' | lpf -i1 | revfile | lpf | ap"
+
+  nawk 'BEGIN {
+    for (i=199; i>=0; i--)
+      if (i >= 100) print i, 1; else print i, 0
+  }' | lpf -i1 | revfile | lpf | ap
+
+NEXT
+
+  echo Fast settling, by way of known initial state:
+  echo "(lpf -S100; lpf -i1.0 -S100) | ap"
+  (lpf -S100; lpf -i1.0 -S100) | ap
+
+NEXT
+
+  echo A nifty impulse response:
+  echo "bpf -tinvcheb -n5 -b.1 -I80 | ap"
+  bpf -tinvcheb -n5 -b.1 -I80 | ap
+
+NEXT
+
+# these are not in the man page...
+
+TMPFILE=ftmp.$$
+  echo A composite lowpass/bandstop filter:
+  echo "(lpf -tinvc -n5 -r1 -b.5 -s1.3 -d"
+  echo " brf -tinvc -n7 -r.5 -c.25 -b.1 -d) >$TMPFILE"
+  echo "lpf -f$TMPFILE -X | ap"
+  echo "/bin/rm $TMPFILE"
+
+  (lpf -tinvc -n5 -r1 -b.5 -s1.3 -d
+   brf -tinvc -n7 -r.5 -c.25 -b.1 -d) >$TMPFILE
+  lpf -f$TMPFILE -X | ap
+  /bin/rm $TMPFILE
+
+NEXT
+
+TMPFILE=ftmp.$$
+  echo Plot the response of each biquad in a filter by disecting a dump file:
+  echo "echo 0.235386482 0.02360441966 0.235386482 / 1 -1.169928411 0.664305795 >$TMPFILE.1"
+  echo "echo 0.1382922162 0.1345432958 0.1382922162 / 1 -0.8580070466 0.2691347749 >$TMPFILE.2"
+  echo "echo 0.3127571984 0.3127571984 0 / 1 -0.3744856031 0 >$TMPFILE.3"
+  echo "cat $TMPFILE.1 $TMPFILE.2 $TMPFILE.3 >$TMPFILE"
+  echo "(lpf -f$TMPFILE.1 -x; lpf -f$TMPFILE.2 -x;"
+  echo " lpf -f$TMPFILE.3 -x; lpf -f$TMPFILE -x) | ap"
+  echo "/bin/rm $TMPFILE $TMPFILE.1 $TMPFILE.2 $TMPFILE.3"
+
+  echo 0.235386482 0.02360441966 0.235386482 / 1 -1.169928411 0.664305795 >$TMPFILE.1
+  echo 0.1382922162 0.1345432958 0.1382922162 / 1 -0.8580070466 0.2691347749 >$TMPFILE.2
+  echo 0.3127571984 0.3127571984 0 / 1 -0.3744856031 0 >$TMPFILE.3
+  cat $TMPFILE.1 $TMPFILE.2 $TMPFILE.3 >$TMPFILE
+  (lpf -f$TMPFILE.1 -x; lpf -f$TMPFILE.2 -x;
+   lpf -f$TMPFILE.3 -x; lpf -f$TMPFILE -x) | ap
+  /bin/rm $TMPFILE $TMPFILE.1 $TMPFILE.2 $TMPFILE.3
+
+echo
+echo
