@@ -6,4 +6,4 @@ do
    lpf -x -n$i -b.5
 done
 echo 1>&2
-) | ap
+) | pd

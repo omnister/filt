@@ -8,4 +8,4 @@
     echo 1>&2
     echo "title Bandpass Butterworth transfer function"
     echo "title 8th order, center frequency from .1 to .9, BW=.05"
-) | ap
+) | pd

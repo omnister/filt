@@ -69,7 +69,7 @@ All of the programs assume that the input
 data is evenly spaced in time. In fact, the "time" value is ignored
 and merely passed unchanged to the output.  The output format is ASCII
 "time,value" pairs, with one pair per line, and is suitable for input to
-.I autoplot.
+.I pdplot program.
 Lines which do not begin with a numeric value are passed directly to the
 output, so that formatting commands can be included in the data.
 The following options are recognized:
@@ -138,7 +138,7 @@ Of course, the default value is 0.
 .TP
 .B -x
 Causes the program to output the calculated frequency response in
-autoplot(1) format.  No filtering is done.  This option is helpful in
+pdplot(1) format.  No filtering is done.  This option is helpful in
 choosing the filter parameters before actually doing the time domain
 filtering.
 .TP
@@ -158,7 +158,7 @@ A variant on the
 option, wherein only the passband is plotted.
 .TP
 .B -I \fI nsamples
-Outputs, in autoplot(1) format, \fI nsamples\fR of the time-domain
+Outputs, in pdplot(1) format, \fI nsamples\fR of the time-domain
 impulse response of the filter.  This and the
 .B -S
 option are useful to observe the settling behavior of the filter and
@@ -166,7 +166,7 @@ to make sure that the program has correctly constructed a \fI stable\fR
 filter :-).
 .TP
 .B -S \fI nsamples
-Outputs, in autoplot(1) format, \fI nsamples\fR of the time-domain
+Outputs, in pdplot(1) format, \fI nsamples\fR of the time-domain
 step response of the filter.
 .TP
 .B -d
@@ -208,30 +208,30 @@ To see the frequency domain performance of this filter, use the
 option:
 .PP
 .DS
-    "lpf -b0.1 -n20 -tbutt -X | autoplot"
+    "lpf -b0.1 -n20 -tbutt -X | pdplot"
 .DE
 .PP
 This example compares the magnitude response of an inverse Chebyshev
 filter to a commensurate plain Chebyshev filter:
 .PP
 .DS
-    "(echo xset 0.4 0.6; bpf -tcheb -x; bpf -tinvcheb -s2 -x) | autoplot"
+    "(echo xset 0.4 0.6; bpf -tcheb -x; bpf -tinvcheb -s2 -x) | pdplot"
 .DE
 .PP
 The phase distortion of the Bessel approximation (see BUGS) is
 revealed by this example:
 .PP
 .DS
-    "(lpf -tbess -b.1 -n10 -S100; lpf -tbess -b.01 -n10 -S100) | autoplot"
+    "(lpf -tbess -b.1 -n10 -S100; lpf -tbess -b.01 -n10 -S100) | pdplot"
 .DE
 .PP
 Linear phase filtering can be done by running the data through the
 same filter in both forward and reverse time.  This can be done easily
-with the revfile(1) program that "cats" lines in reverse order:
+with the tac(1) program that "cats" lines in reverse order:
 .PP
 .DS
-    "revfile datafile | lpf > temp"
-    "revfile temp | lpf > outputfile"
+    "tac datafile | lpf > temp"
+    "tac temp | lpf > outputfile"
 .DE
 .PP
 Or try this, to verify the symmetry of the filter's impulse response:
@@ -240,7 +240,7 @@ Or try this, to verify the symmetry of the filter's impulse response:
     nawk 'BEGIN { \(
       for (i=199; i>=0; i--) \(
         if (i == 100) print i, 1; else print i, 0 \(
-    }' | lpf | revfile | lpf | autoplot
+    }' | lpf | tac | lpf | pdplot
 .DE
 .PP
 This combines forward/backward filtering with the
@@ -251,7 +251,7 @@ option to obtain a symmetric step:
   nawk 'BEGIN { \(
     for (i=199; i>=0; i--) \(
       if (i >= 100) print i, 1; else print i, 0 \(
-  }' | lpf -i1 | revfile | lpf | autoplot
+  }' | lpf -i1 | tac | lpf | pdplot
 .DE
 .PP
 The
@@ -260,20 +260,20 @@ option is illustrated in the following example, where the step response
 transient is suppressed by a priori knowledge of the initial condition:
 .PP
 .DS
-    "(lpf -S100; lpf -i1.0 -S100) | autoplot"
+    "(lpf -S100; lpf -i1.0 -S100) | pdplot"
 .DE
 .PP
 An interesting DSP principle is demonstrated in this example:
 .PP
 .DS
-    "bpf -tinvcheb -n5 -b.1 -I80 | autoplot"
+    "bpf -tinvcheb -n5 -b.1 -I80 | pdplot"
 .DE
 .PP
 A symmetric bandpass filter, centered on half the Nyquist frequency, has
 an impulse response where every other sample is zero.  This can be
 exploited to simplify its hardware implementation.
 .SH SEE ALSO
-autoplot(1)
+pdplot(1)
 .SH AUTHOR
 Written by Rick Walker, HPL.
 .PP

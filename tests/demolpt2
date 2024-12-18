@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/bash
 
 DATAFILE=data.$$
 TEMPFILE=temp.$$
@@ -20,12 +20,12 @@ nawk 'BEGIN {
     echo "yset -.2 1.2"
     cat $DATAFILE
     echo 1>&2
-    echo "revfile $DATAFILE | lpf -n8 -b.05 > $TEMPFILE" 1>&2
-    echo "revfile $TEMPFILE | lpf -n8 -b.05" 1>&2
+    echo "tac $DATAFILE | lpf -n8 -b.05 > $TEMPFILE" 1>&2
+    echo "tac $TEMPFILE | lpf -n8 -b.05" 1>&2
     echo 1>&2
-    revfile $DATAFILE | lpf -n8 -b.05 > $TEMPFILE
-    revfile $TEMPFILE | lpf -n8 -b.05
-) | ap
+    tac $DATAFILE | lpf -n8 -b.05 > $TEMPFILE
+    tac $TEMPFILE | lpf -n8 -b.05
+) | pd
 
 /bin/rm $DATAFILE 
 /bin/rm $TEMPFILE 

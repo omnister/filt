@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <getopt.h>
 #include "bessel.h"		/* coefficients for bessel approximation */
 
 double T = 1.0;			/* normalized sampling time period */
@@ -56,6 +57,7 @@ double fnorm = 0.0;		/* normalization frequency [set in main()] */
 #define PLOT_PBAND (1<<3)
 
 #define MAXBUF 1024
+
 
 struct biquad {
     double a1;
@@ -87,8 +89,13 @@ char *progname;
 int scan_OK;
 char instring[MAXBUF];
 
+void ComplexSqrt(double *x, double *y);
+void printquad(struct biquad *p);
+void initxplot(int filter_type, int order, double cf, double bw,char *ptype);
+void initIplot(int filter_type, int order, double cf, double bw, char *ptype);
 
-main(argc, argv)    /* nth order time-domain filter */
+
+int main(argc, argv)    /* nth order time-domain filter */
 int argc;
 char *argv[];
 {
@@ -484,7 +491,8 @@ char *argv[];
 	}
 
 	if (xfer_plot & PLOT_DELAY) {
-	    printf("rightyscale 1 delay [samples];; liny\n");
+	    printf("rightyscale 1 delay [samples]\n");
+	    printf("liny\n");
 	    for (F=F1; F<=F2; F+=bw/(double)npoints) {
 		delay = 0.0;
 		devalquad(F,&delay,quadlist);
@@ -517,7 +525,7 @@ char *argv[];
 
     } else { 	    	/* process each x,y pair from standard input */
 
-	while(gets(instring) != NULL) {
+	while(fgets(instring, MAXBUF,stdin) != NULL) {
     	    scan_OK=sscanf(instring,"%lf %lf",&time, &out);
     	    if(scan_OK == 2) {
 	    	filter(&out, quadlist);
@@ -903,8 +911,7 @@ int *order;
     return(p);
 }
 
-printquad(p)	    /* print out values of biquad structure */
-struct biquad *p;
+void printquad(struct biquad *p)	    /* print out values of biquad structure */
 {
     if (p != NULL) {
     	printquad(p->next);
@@ -913,11 +920,7 @@ struct biquad *p;
     }
 }
 
-initxplot(filter_type,order,cf,bw,ptype)
-int filter_type;
-int order;
-double cf,bw;
-char *ptype;	/* "transfer" or "loss" */
+void initxplot(int filter_type, int order, double cf, double bw,char *ptype)
 {
     char *name;
 
@@ -966,17 +969,17 @@ char *ptype;	/* "transfer" or "loss" */
 	printf("xscale 1 frequency [normalized to Fs/2]\n");
     else
 	printf("xscale 1 frequency [normalized to %.2f*Fs]\n", fnorm);
-    if ( ptype && (*ptype == 'l' || *ptype == 'L') )
-	printf("yscale 1 loss [dB];; dby\n");
-    else
-	printf("yscale 1 magnitude [dB];; dby\n");
+
+    if ( ptype && (*ptype == 'l' || *ptype == 'L') ) {
+	printf("yscale 1 loss [dB]\ndby\n");
+    } else {
+	printf("yscale 1 magnitude [dB]\ndby\n");
+    }
 }
 
-initIplot(filter_type,order,cf,bw,ptype)
-int filter_type;
-int order;
-double cf,bw;
-char *ptype;	/* "impulse" or "step" */
+// ptype is "impulse" or "step"
+
+void initIplot(int filter_type, int order, double cf, double bw, char *ptype)
 {
     char *name;
 
@@ -1021,7 +1024,7 @@ char *ptype;	/* "impulse" or "step" */
     printf("style working\n");
     printf("xscale 1 samples\n");
     printf("yscale 1 amplitude\n");
-    printf("symbol circle;; symbolsize 0.5\n");
+    printf("symbol circle\nsymbol+line\nsymbolsize 0.5\n");
 }
 
 double fevalquad(F,realp,imagp,p) /* realp, imagp are _inputs_ and outputs */
@@ -1211,8 +1214,7 @@ struct biquad *qalloc()
     return((struct biquad *) malloc((unsigned) sizeof(struct biquad)));
 }
 
-ComplexSqrt(x,y)    /* complex square root */
-double *x, *y;
+void ComplexSqrt(double *x, double *y)    /* complex square root */
 {
     double rho,theta;
 
